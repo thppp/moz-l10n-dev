@@ -197,3 +197,60 @@ class TestAndroidMessage(TestCase):
         assert msg == PatternMessage(["One two\xa0three\xa0four"])
         res = serialize_message(Format.android, msg)
         assert res == "One two\\u00a0three\\u00a0four"
+
+class TestWordCounts(TestCase):
+    def test_empty_string(self):
+        src = ""
+        msg = parse_message(Format.mf2, src)
+        assert word_count(msg) == 0  
+    def test_simple_string(self):
+        src = "Hello, World! What a wonderful day!"
+        msg = parse_message(Format.mf2, src)
+        assert word_count(msg) == 6
+    def test_fluent(self):
+        src = "hello { $world }"
+        msg = parse_message(Format.fluent, src)
+        assert word_count(msg) == 2
+    def test_markup(self):
+        src = "Click {#link}here{/link}. {#bold}{$count}{/bold} {#star-icon/}"
+        msg = parse_message(Format.mf2, src)
+        assert word_count(msg) == 3
+    def test_mf2(self):
+        src = "You have {42 :number style=currency currency=$currency}."
+        msg = parse_message(Format.mf2, src)
+        assert word_count(msg) == 2
+    def test_hyphens(self):
+        src = "A state-of-the-art feature available in New-York City"
+        msg = parse_message(Format.mf2, src)
+        assert word_count(msg) == 7
+    def select_message(self):
+        src = """.input {$pronoun :string}
+.input {$name :string}
+.match $pronoun
+he {{His name is {$name}.}}
+she {{Her name is {$name}.}}
+* {{Their name is {$name}.}}"""
+        msg = parse_message(Format.mf2, src)
+        assert word_count(msg) == 10
+    def test_punctuation(self):
+        src = "Click here !!! # ;"
+        msg = parse_message(Format.mf2, src)
+        assert word_count(msg) == 2
+    def test_literal(self):
+        src = "Today is {$date :datetime weekday=long}."
+        msg = parse_message(Format.mf2, src)
+        assert word_count(msg) == 3
+    def test_pattern(self):
+        src = "This is a pattern. It can include expressions like {$v} and {#bold}markup{/bold}."
+        msg = parse_message(Format.mf2, src)
+        assert word_count(msg) == 12
+    def test_text_pattern(self):
+        src = """.input {$num :number}
+{{   This is the {$num} pattern   }}"""
+        msg = parse_message(Format.mf2, src)
+        assert word_count(msg) == 5
+    def test_multiple_vars(self):
+        src = """.input {$num :number} {{   This is the {$num} pattern {$num}, {$v}   }}"""
+        msg = parse_message(Format.mf2, src)
+        assert word_count(msg) == 6
+
