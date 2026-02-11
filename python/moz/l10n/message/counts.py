@@ -19,7 +19,7 @@ from typing import Any
 
 def count_strings(lst:list[str]) -> int:
     pattern = re.compile(r"(([\w']+-)*[\w']+)", re.UNICODE)
-    s = ' '.join(lst)
+    s = ''.join(lst)
     matches = pattern.findall(s)
     return len(matches)
 
@@ -46,7 +46,7 @@ def _count_items(lsts: list[list[Any]]) -> int:
     for lst in lsts:
         for obj in lst:
             if isinstance(obj, str):
-                strs.extend(obj.split())
+                strs.extend(obj)
             else:
                 exprs.append(obj)
     return count_strings(strs) + count_var_refs(exprs)
